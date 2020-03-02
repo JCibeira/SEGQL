@@ -56,9 +56,6 @@ def where(block, line)
     logic = '||'
     check = false
 
-    print 'conditions: '
-    puts conditions
-
     conditions.each do |condition|
         if condition == '&&'
             logic = '&&'
@@ -155,20 +152,11 @@ def where(block, line)
                     value = params[1]
                 end
 
-                print 'operator: '
-                puts operator
-                print 'block_value: '
-                puts block_value
-                print 'value: '
-                puts value
-
                 if block_value > value
                     check = true
                 else
                     check = false
                 end
-                print 'check: '
-                puts check
             elsif condition.include?('<')
                 operator = '<'
                 params = condition.split('<')
@@ -183,35 +171,21 @@ def where(block, line)
                     value = params[1]
                 end
 
-                print 'operator: '
-                puts operator
-                print 'block_value: '
-                puts block_value
-                print 'value: '
-                puts value
-
                 if block_value < value
                     check = true
                 else
                     check = false
                 end
-
-                print 'check: '
-                puts check
             end
 
-            print 'logic: '
-            puts logic
             if logic == '&&'
                 result = result && check
             else
                 result = result || check
             end
-            print 'result: '
-            puts result
         end
     end
-    puts ''
+
     return result
 end
 
@@ -273,8 +247,6 @@ graph['density'] = []
 graph['area'] = []
 graph['rectangle'] = []
 graph['parent'] = []
-
-puts graph
 
 # Lectura de lineas opcionales
 if last_line
