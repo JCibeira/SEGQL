@@ -298,9 +298,9 @@ if !error
 
                 if select_blocks(base_url, attributes, segment_params, status)
                     blocks = get_json(segment_params, base_url)
-
+                    
                     blocks.each do |block|
-                        if where(block, condition)
+                        if where(block, condition) || condition == ''
                             attributes.each do |attribute|
                                 if attribute == 'bid'
                                     graph['bid'].push(block['bid'])
