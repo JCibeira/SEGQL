@@ -186,10 +186,13 @@ class Query
     end
 
     def order_by(rows, line)
-        order = line.split()
-        index = 0
 
-        if order[0] == 'label'
+        order = line.split()
+        index = -1
+
+        if order[0] == 'bid'
+            index = 0
+        elsif order[0] == 'label'
             index = 1
         elsif order[0] == 'text'
             index = 2
@@ -198,19 +201,19 @@ class Query
         elsif order[0] == 'pa'
             index = 4
         elsif order[0] == 'density'
-            index = 4
+            index = 5
         elsif order[0] == 'area'
-            index = 4
+            index = 6
         end
 
-        if order[1] == 'asc'
+        if (order[1] == 'asc' || order.length() == 1) && index > -1
             return rows.sort_by { |row| row[index] }
         else
             return rows.sort_by { |row| row[index] }.reverse
         end
     end
 
-    def select_blocks()
+    def get_blocks()
         #if($STATUS != 'data stored in Cache')
             #if(get_request('segment', @segment_params))
                 #$STATUS = 'data stored in Cache'
@@ -218,11 +221,13 @@ class Query
                 #return false
             #end
         #end
-
-        rows = []
         
-        #blocks = bom_json(@segment_params['key'])
-        blocks = file_json()
+        #return bom_json(@segment_params['key'])
+        return file_json()
+    end
+
+    def select_blocks(blocks)
+        rows = []
 
         blocks.each do |block|
             if @condition == '' || where(block, @condition)
@@ -246,17 +251,53 @@ class Query
             end
         end
 
-        rows = order_by(rows, @order_by)
+        if @order_by != '' && @function == 'select'
+            rows = order_by(rows, @order_by)
+        end
 
+        return rows
+    end
+
+    def merge_blocks(blocks)
+
+        rows = select_blocks(blocks)
+
+        merges = []
+        merge = []
+        if rows
+            @attributes.each_with_index do |attribute,index|
+                concat = ''
+                acum = 0
+
+                if attribute == 'bid'
+                    bid = rows[0][index] + ' - ' + rows[rows.length() - 1][index]
+                    merge.push(bid)
+                else
+                    rows.each do |row|
+                        if attribute == 'label' || attribute == 'text' || attribute == 'images' || attribute == 'parent'
+                            concat = concat + ' ' + row[index]
+                        else
+                            acum = acum + row[index]
+                            concat = acum.to_s
+                        end
+                    end
+                    merge.push(concat)
+                end
+            end
+
+            merges.push(merge)
+
+            return merges
+        else
+            return false
+        end
+    end
+
+    def show_table(rows)
         table = Terminal::Table.new :headings => (@attributes[0] == '*' ? $VALID_ATTRIBUTES.drop(1) : @attributes), :rows => rows
         table.style = { :all_separators => true }
 
         puts table
-
-        return true
     end
 
-    def merge_blocks()
-        
-    end
 end

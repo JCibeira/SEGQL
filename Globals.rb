@@ -39,8 +39,8 @@ end
 
 def file_json()
     file_name = "file.json"
-
     line = ""
+    
     File.open(file_name) do |file|
         line = file.gets
     end

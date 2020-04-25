@@ -9,7 +9,11 @@ if query.read()
         if query.validate_attributes()
             if query.validate_url()
                 query.set_params()
-                if !query.select_blocks()
+                blocks = query.get_blocks()
+                if blocks
+                    result = query.select_blocks(blocks)
+                    query.show_table(result)
+                else
                     puts 'Segmentation error'
                 end
             else
@@ -19,7 +23,23 @@ if query.read()
             puts 'Invalid attributes'
         end
     elsif query.get_function() == 'merge'
-        query.merge_blocks()
+        if query.validate_attributes()
+            if query.validate_url()
+                query.set_params()
+                blocks = query.get_blocks()
+                blocks = blocks.sort_by { |block| block['area'] }
+                if blocks
+                    result = query.merge_blocks(blocks)
+                    query.show_table(result)
+                else
+                    puts 'Segmentation error'
+                end
+            else
+                puts 'Invalid URL'
+            end
+        else
+            puts 'Invalid attributes'
+        end
     else
         puts 'Invalid function'
     end
