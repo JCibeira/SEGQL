@@ -1,0 +1,49 @@
+http://edition.cnn.com/US/OJ/
+{
+    "bid": "B768",
+    "label": "article",
+    "text": "jurors",
+    "images": "",
+    "pa": 9,
+    "density": 102.61,
+    "area": 2134.343265625,
+    "rectangle": {
+      "x": 8.0,
+      "y": 8.0,
+      "w": 1027.0,
+      "h": 2102.546875
+    },
+    "parent": "Bpage",
+},
+{
+    "bid": "B17",
+    "label": "nav",
+    "text": "what do you think view comments from other users on the trial verdict",
+    "images": "http://edition.cnn.com/US/OJ/images/whatyouthink.gif",
+    "pa": 1,
+    "density": 2.121,
+    "area": 6.1210625,
+    "rectangle": {
+      "x": 73.0,
+      "y": 2161.984375,
+      "w": 433.0625,
+      "h": 2178.984375
+    },
+    "parent": "Bpage",
+},
+{
+    "bid": "B371",
+    "label": "nav",
+    "text": "contents search cnn home page main u s news page copyright 1995 cable news network inc all rights reserved",
+    "images": "",
+    "pa": 1,
+    "density": 3.1,
+    "area": 128.74428125,
+    "rectangle": {
+      "x": 8.0,
+      "y": 2224.546875,
+      "w": 1027.0,
+      "h": 2350.890625
+    },
+    "parent": "Bpage",
+}

@@ -37,6 +37,17 @@ def bom_json(key)
     return response["page"]["children"]
 end
 
+def file_json()
+    file_name = "file.json"
+
+    line = ""
+    File.open(file_name) do |file|
+        line = file.gets
+    end
+
+    json = JSON.parse(line)
+    return json["page"]["children"]
+end
 
 def verify_length(value)
     if value.is_a?(String) && value.length > 35

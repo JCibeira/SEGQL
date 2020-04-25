@@ -121,59 +121,18 @@ class Query
     def set_params()
         @segment_params['url'] = @url
         
-        @params.each do |param|
-            prm = param.split('=')
-            if prm[0] == 'dc' || prm[0] == 'pa'
-                @segment_params[prm[0]] = prm[1].to_i
-            elsif prm[0] == 'area'
-                @segment_params[prm[0]] = prm[1].to_f
-            else
-                @segment_params[prm[0]] = prm[1]
-            end
-        end
-    end
-
-    def select_blocks()
-        if($STATUS != 'data stored in Cache')
-            if(get_request('segment', @segment_params))
-                $STATUS = 'data stored in Cache'
-            else
-                return false
-            end
-        end
-
-        rows = []
-
-        blocks = bom_json(@segment_params['key'])
-
-        blocks.each do |block|
-            if @condition == '' || where(block, @condition)
-                row = []
-                @attributes.each do |attribute|
-                    if attribute == '*'
-                        row.push(block['bid'])
-                        row.push(verify_length(block['label']))
-                        row.push(verify_length(block['text']))
-                        row.push(verify_length(block['images']))
-                        row.push(block['pa'])
-                        row.push(block['density'])
-                        row.push(block['area'])
-                        row.push(block['rectangle'])
-                        row.push(block['parent'])
-                    else
-                        row.push(verify_length(block[attribute]))
-                    end
+        if @params != ''
+            @params.each do |param|
+                prm = param.split('=')
+                if prm[0] == 'dc' || prm[0] == 'pa'
+                    @segment_params[prm[0]] = prm[1].to_i
+                elsif prm[0] == 'area'
+                    @segment_params[prm[0]] = prm[1].to_f
+                else
+                    @segment_params[prm[0]] = prm[1]
                 end
-                rows.push(row)
             end
         end
-
-        table = Terminal::Table.new :headings => (@attributes[0] == '*' ? $VALID_ATTRIBUTES.drop(1) : @attributes), :rows => rows
-        table.style = { :all_separators => true }
-
-        puts table
-
-        return true
     end
 
     def where(block, line)
@@ -224,6 +183,77 @@ class Query
         end
     
         return result
+    end
+
+    def order_by(rows, line)
+        order = line.split()
+        index = 0
+
+        if order[0] == 'label'
+            index = 1
+        elsif order[0] == 'text'
+            index = 2
+        elsif order[0] == 'images'
+            index = 3
+        elsif order[0] == 'pa'
+            index = 4
+        elsif order[0] == 'density'
+            index = 4
+        elsif order[0] == 'area'
+            index = 4
+        end
+
+        if order[1] == 'asc'
+            return rows.sort_by { |row| row[index] }
+        else
+            return rows.sort_by { |row| row[index] }.reverse
+        end
+    end
+
+    def select_blocks()
+        #if($STATUS != 'data stored in Cache')
+            #if(get_request('segment', @segment_params))
+                #$STATUS = 'data stored in Cache'
+            #else
+                #return false
+            #end
+        #end
+
+        rows = []
+        
+        #blocks = bom_json(@segment_params['key'])
+        blocks = file_json()
+
+        blocks.each do |block|
+            if @condition == '' || where(block, @condition)
+                row = []
+                @attributes.each do |attribute|
+                    if attribute == '*'
+                        row.push(block['bid'])
+                        row.push(verify_length(block['label']))
+                        row.push(verify_length(block['text']))
+                        row.push(verify_length(block['images']))
+                        row.push(block['pa'])
+                        row.push(block['density'])
+                        row.push(block['area'])
+                        row.push(block['rectangle'])
+                        row.push(block['parent'])
+                    else
+                        row.push(verify_length(block[attribute]))
+                    end
+                end
+                rows.push(row)
+            end
+        end
+
+        rows = order_by(rows, @order_by)
+
+        table = Terminal::Table.new :headings => (@attributes[0] == '*' ? $VALID_ATTRIBUTES.drop(1) : @attributes), :rows => rows
+        table.style = { :all_separators => true }
+
+        puts table
+
+        return true
     end
 
     def merge_blocks()
