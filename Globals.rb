@@ -49,9 +49,18 @@ def file_json()
     return json["page"]["children"]
 end
 
-def verify_length(value)
-    if value.is_a?(String) && value.length > 35
-        return value.scan(/.{35}|.+/).join("\n")
+def verify_attr(value)
+    if value.is_a?(Hash)
+        value = value.to_s
+        if  value.length > 15
+            return value.scan(/.{15}|.+/).join("\n")
+        else
+            return value
+        end
+    end
+
+    if value.is_a?(String) && value.length > 30
+        return value.scan(/.{30}|.+/).join("\n")
     else
         return value
     end
