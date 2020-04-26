@@ -186,44 +186,53 @@ class Query
     end
 
     def order_by(rows, line)
-
-        order = line.split()
-        index = -1
-
-        if order[0] == 'bid'
-            index = 0
-        elsif order[0] == 'label'
-            index = 1
-        elsif order[0] == 'text'
-            index = 2
-        elsif order[0] == 'images'
-            index = 3
-        elsif order[0] == 'pa'
-            index = 4
-        elsif order[0] == 'density'
-            index = 5
-        elsif order[0] == 'area'
-            index = 6
-        end
-
-        if (order[1] == 'asc' || order.length() == 1) && index > -1
-            return rows.sort_by { |row| row[index] }
+        if line.include?(',')
+            line = line.split(',')
         else
-            return rows.sort_by { |row| row[index] }.reverse
+            line = [line]
         end
+
+        sort_directions = []
+
+        line.each do |order|
+            values = order.split()
+            
+            if @attributes.length == 1 && @attributes[0] == '*'
+                index = $VALID_ATTRIBUTES.drop(1).find_index(values[0])
+            else
+                index = @attributes.find_index(values[0])
+            end
+
+            if values.length == 1 || values[1] == 'asc'
+                direction = 1
+            elsif values[1] == 'desc'
+                direction = -1
+            else
+                direction = nil
+            end
+
+            if index != nil && direction != nil
+                sort_directions.push( { :index => index, :order => direction })
+            end
+        end
+
+        return rows.sort { |a, b|
+            keys = sort_directions.map{|val| val[:order] * (a[val[:index]] <=> b[val[:index]])}
+            keys.find{ |x| x != 0 } || 0
+        }
     end
 
     def get_blocks()
-        #if($STATUS != 'data stored in Cache')
-            #if(get_request('segment', @segment_params))
-                #$STATUS = 'data stored in Cache'
-            #else
-                #return false
-            #end
-        #end
+        if($STATUS != 'data stored in Cache')
+            if(get_request('segment', @segment_params))
+                $STATUS = 'data stored in Cache'
+            else
+                return false
+            end
+        end
         
-        #return bom_json(@segment_params['key'])
-        return file_json()
+        return bom_json(@segment_params['key'])
+        # return file_json()
     end
 
     def select_blocks(blocks)
@@ -234,17 +243,11 @@ class Query
                 row = []
                 @attributes.each do |attribute|
                     if attribute == '*'
-                        row.push(block['bid'])
-                        row.push(verify_length(block['label']))
-                        row.push(verify_length(block['text']))
-                        row.push(verify_length(block['images']))
-                        row.push(block['pa'])
-                        row.push(block['density'])
-                        row.push(block['area'])
-                        row.push(block['rectangle'])
-                        row.push(block['parent'])
+                        $VALID_ATTRIBUTES.drop(1).each do |valid_attr|
+                            row.push(verify_attr(block[valid_attr]))
+                        end
                     else
-                        row.push(verify_length(block[attribute]))
+                        row.push(verify_attr(block[attribute]))
                     end
                 end
                 rows.push(row)
@@ -259,11 +262,10 @@ class Query
     end
 
     def merge_blocks(blocks)
-
         rows = select_blocks(blocks)
-
         merges = []
         merge = []
+
         if rows
             @attributes.each_with_index do |attribute,index|
                 concat = ''
