@@ -27,7 +27,6 @@ if query.read()
             if query.validate_url()
                 query.set_params()
                 blocks = query.get_blocks()
-                blocks = blocks.sort_by { |block| block['area'] }
                 if blocks
                     result = query.merge_blocks(blocks)
                     query.show_table(result)

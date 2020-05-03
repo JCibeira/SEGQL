@@ -222,17 +222,36 @@ class Query
         }
     end
 
-    def get_blocks()
-        if($STATUS != 'data stored in Cache')
-            if(get_request('segment', @segment_params))
-                $STATUS = 'data stored in Cache'
-            else
-                return false
-            end
+    def merge_areas(blocks)
+        blocks = blocks.sort_by { |block| -1*(block['area']) }  
+        min_area_acum = blocks[blocks.length() - 1]['area']
+        max_area_acum = blocks.inject(0){|sum, block| sum + block['area'].to_f}
+        increment = (max_area_acum - min_area_acum) / 10.0
+
+        x = 1
+        acum = min_area_acum
+        areas = []
+
+        while x <= 10
+            acum += increment
+            areas.push(acum)
+            x += 1
         end
+
+        return areas
+    end
+
+    def get_blocks()
+        # if($STATUS != 'data stored in Cache')
+        #     if(get_request('segment', @segment_params))
+        #         $STATUS = 'data stored in Cache'
+        #     else
+        #         return false
+        #     end
+        # end
         
-        return bom_json(@segment_params['key'])
-        # return file_json()
+        # return bom_json(@segment_params['key'])
+        return file_json()
     end
 
     def select_blocks(blocks)
@@ -263,11 +282,12 @@ class Query
 
     def merge_blocks(blocks)
         rows = select_blocks(blocks)
+        areas = merge_areas(blocks);
         merges = []
         merge = []
 
         if rows
-            @attributes.each_with_index do |attribute,index|
+            @attributes.each_with_index do |attribute, index|
                 concat = ''
                 acum = 0
 
@@ -288,6 +308,16 @@ class Query
             end
 
             merges.push(merge)
+
+            x = 0
+            index_pa = @attributes.find_index('pa')
+            index_area = @attributes.find_index('area')
+
+            while areas[x] < merges[0][index_area].to_f
+                x += 1
+            end
+
+            merges[0][index_pa] = x + 1
 
             return merges
         else
